@@ -3,3 +3,5 @@ cryptography
 pandas
 plotly
 pytest
+black
+flake8

@@ -1,5 +1,8 @@
 from pathlib import Path
 from .config import Config
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 class SafetyEnforcer:
     """
@@ -23,10 +26,12 @@ class SafetyEnforcer:
                 # If the critical path is root, only block if it IS root (don't block children of root, which is everything)
                 if str(p) == "/":
                     if resolved_path == p:
+                        logger.warning(f"Blocked attempt to access system root: {resolved_path}")
                         return False
                 # For other critical paths (e.g. /etc), block the path and any children
                 else:
                     if resolved_path == p or p in resolved_path.parents:
+                        logger.warning(f"Blocked attempt to access critical path: {resolved_path}")
                         return False
 
             # Check if path is relative to (inside) the allowed directories
@@ -46,11 +51,15 @@ class SafetyEnforcer:
             
             return is_in_prod or is_in_backup
         except Exception as e:
-            print(f"Safety Check Error: {e}")
+            logger.error(f"Safety Check Error for path {target_path}: {e}")
             return False
 
     @staticmethod
     def ensure_directories():
         """Creates necessary directories if they don't exist."""
-        Config.PRODUCTION_DIR.mkdir(parents=True, exist_ok=True)
-        Config.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        try:
+            Config.PRODUCTION_DIR.mkdir(parents=True, exist_ok=True)
+            Config.BACKUP_DIR.mkdir(parents=True, exist_ok=True)
+        except Exception as e:
+            logger.critical(f"Failed to create sandbox directories: {e}")
+            raise

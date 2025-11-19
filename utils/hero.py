@@ -1,10 +1,6 @@
-import os
-import shutil
-from pathlib import Path
-from .safety import SafetyEnforcer
-from .analyst import Analyst
-from .config import Config
-import time
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
 
 class Hero:
     """
@@ -27,6 +23,7 @@ class Hero:
         
         # Get current active incident to close the loop
         current_incident_id = Analyst.get_current_incident_id()
+        logger.info(f"Initiating Disaster Recovery. Linked Incident ID: {current_incident_id}")
         Analyst.log_event("Restore Start", incident_id=current_incident_id)
         
         prod_dir = Config.PRODUCTION_DIR
@@ -46,7 +43,7 @@ class Hero:
                     elif item_path.is_dir():
                         shutil.rmtree(item_path)
                 except Exception as e:
-                    print(f"Error wiping {item_path.name}: {e}")
+                    logger.error(f"Error wiping {item_path.name}: {e}")
             
             current_op += 1
             if progress_callback:
@@ -72,7 +69,7 @@ class Hero:
                         shutil.copytree(s, d)
                         restored_count += 1
                 except Exception as e:
-                    print(f"Error restoring {item.name}: {e}")
+                    logger.error(f"Error restoring {item.name}: {e}")
                 
                 current_op += 1
                 if progress_callback:
@@ -81,6 +78,7 @@ class Hero:
                 # Artificial delay for dramatic effect
                 time.sleep(0.05)
         
+        logger.info(f"Recovery Complete. {restored_count} files restored.")
         Analyst.log_event("Restore Complete", {"files_restored": restored_count}, incident_id=current_incident_id)
         return restored_count
 
@@ -90,18 +88,22 @@ class Hero:
         Generates dummy data in the backup folder and syncs to production
         to initialize the simulation.
         """
-        SafetyEnforcer.ensure_directories()
-        backup_dir = Config.BACKUP_DIR
-        
-        # Create some dummy files if empty
-        if not any(backup_dir.iterdir()):
-            for i in range(1, 6):
-                with open(backup_dir / f"financial_record_{i}.csv", "w") as f:
-                    f.write("id,amount,status\n1,100,paid\n2,200,pending")
-                with open(backup_dir / f"client_list_{i}.txt", "w") as f:
-                    f.write(f"Confidential Client Data {i} - Do Not Leak")
-                with open(backup_dir / f"project_plan_{i}.md", "w") as f:
-                    f.write(f"# Project Alpha {i}\n\n## Confidential\nThis is a top secret project.")
+        try:
+            SafetyEnforcer.ensure_directories()
+            backup_dir = Config.BACKUP_DIR
             
-            # Sync to production
-            Hero.restore_operations()
+            # Create some dummy files if empty
+            if not any(backup_dir.iterdir()):
+                logger.info("Seeding environment with dummy data...")
+                for i in range(1, 6):
+                    with open(backup_dir / f"financial_record_{i}.csv", "w") as f:
+                        f.write("id,amount,status\n1,100,paid\n2,200,pending")
+                    with open(backup_dir / f"client_list_{i}.txt", "w") as f:
+                        f.write(f"Confidential Client Data {i} - Do Not Leak")
+                    with open(backup_dir / f"project_plan_{i}.md", "w") as f:
+                        f.write(f"# Project Alpha {i}\n\n## Confidential\nThis is a top secret project.")
+                
+                # Sync to production
+                Hero.restore_operations()
+        except Exception as e:
+            logger.error(f"Failed to generate dummy data: {e}")
