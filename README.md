@@ -25,25 +25,25 @@ The application follows a modular architecture separating the User Interface, At
 
 ```mermaid
 graph TD
-    User[User / Admin] -->|Interacts| UI[Streamlit Dashboard]
+    User["User / Admin"] -->|Interacts| UI["Streamlit Dashboard"]
     
     subgraph "Core Logic"
-        UI -->|Trigger Attack| Villain[Villain (Attacker)]
-        UI -->|Trigger Restore| Hero[Hero (Defender)]
-        UI -->|View Metrics| Analyst[Analyst (Logger)]
+        UI -->|Trigger Attack| Villain["Villain (Attacker)"]
+        UI -->|Trigger Restore| Hero["Hero (Defender)"]
+        UI -->|View Metrics| Analyst["Analyst (Logger)"]
     end
     
     subgraph "Safety Layer"
-        Villain -->|Validate Path| Safety[Safety Enforcer]
+        Villain -->|Validate Path| Safety["Safety Enforcer"]
         Hero -->|Validate Path| Safety
     end
     
     subgraph "File System Sandbox"
-        Safety -->|Encrypts| Prod[./production_data]
-        Safety -->|Restores from| Backup[./secure_backups]
+        Safety -->|Encrypts| Prod["./production_data"]
+        Safety -->|Restores from| Backup["./secure_backups"]
     end
     
-    Analyst -->|Reads/Writes| Logs[incident_log.json]
+    Analyst -->|Reads/Writes| Logs["incident_log.json"]
 ```
 
 ---
