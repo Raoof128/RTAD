@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment
+.env
+.venv
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
+.DS_Store
+
+# Project Specific - Runtime Data
+# We want to keep the folder structure but ignore the simulation data
+production_data/*
+!production_data/.gitkeep
+secure_backups/*
+!secure_backups/.gitkeep
+incident_log.json
+ransomware.key
+
+# Streamlit
+.streamlit/
