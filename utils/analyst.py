@@ -1,8 +1,8 @@
-import pandas as pd
-from datetime import datetime
 import json
 import os
+from datetime import datetime
 from pathlib import Path
+from typing import Optional
 from .config import Config
 
 class Analyst:
@@ -52,7 +52,7 @@ class Analyst:
             return []
 
     @staticmethod
-    def calculate_last_rto() -> tuple[float | None, str | None]:
+    def calculate_last_rto() -> tuple[Optional[float], Optional[str]]:
         """
         Calculates the Recovery Time Objective (RTO) of the most recently completed recovery cycle.
         
@@ -100,7 +100,7 @@ class Analyst:
         return None, None
 
     @staticmethod
-    def get_current_incident_id() -> str | None:
+    def get_current_incident_id() -> Optional[str]:
         """
         Retrieves the ID of the current active attack, if any.
         

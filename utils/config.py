@@ -19,4 +19,6 @@ class Config:
     TARGET_EXTENSIONS = ('.txt', '.csv', '.xlsx', '.docx', '.json', '.md', '.log')
     
     # System Critical Paths (Blocklist)
-    CRITICAL_PATHS = [Path("/"), Path("/root"), Path("/etc"), Path("/var"), Path("/home"), Path("/bin"), Path("/usr")]
+    # Note: We exclude /home because in many CI/CD environments (like GitHub Actions), 
+    # the runner operates inside /home/runner, so blocking /home blocks the project itself.
+    CRITICAL_PATHS = [Path("/"), Path("/root"), Path("/etc"), Path("/var"), Path("/bin"), Path("/usr")]
