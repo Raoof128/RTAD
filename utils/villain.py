@@ -13,25 +13,35 @@ class Villain:
     """
     
     @staticmethod
-    def generate_key():
-        """Generates and saves a key if it doesn't exist."""
+    def generate_key() -> None:
+        """Generates and saves a new Fernet encryption key if one does not exist."""
         if not Config.KEY_FILE.exists():
             key = Fernet.generate_key()
             with open(Config.KEY_FILE, "wb") as key_file:
                 key_file.write(key)
 
     @staticmethod
-    def load_key():
-        """Loads the encryption key."""
+    def load_key() -> bytes:
+        """
+        Loads the existing encryption key.
+        
+        Returns:
+            bytes: The Fernet key.
+        """
         if not Config.KEY_FILE.exists():
             Villain.generate_key()
         return open(Config.KEY_FILE, "rb").read()
 
     @staticmethod
-    def infect_system(progress_callback=None):
+    def infect_system(progress_callback: callable = None) -> tuple[int, str]:
         """
-        Encrypts files in the production directory.
-        Returns tuple: (encrypted_count, incident_id)
+        Simulates the ransomware attack by encrypting files in the production directory.
+        
+        Args:
+            progress_callback (callable, optional): A function to report progress (0.0 to 1.0).
+            
+        Returns:
+            tuple: (number_of_files_encrypted, incident_id)
         """
         SafetyEnforcer.ensure_directories()
         

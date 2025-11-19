@@ -13,9 +13,14 @@ class Analyst:
     """
     
     @staticmethod
-    def log_event(event_type, details=None, incident_id=None):
+    def log_event(event_type: str, details: dict = None, incident_id: str = None) -> None:
         """
-        Logs an event with a timestamp and optional incident ID.
+        Logs an operational event to the audit trail.
+        
+        Args:
+            event_type (str): The name of the event (e.g., "Attack Start").
+            details (dict, optional): Additional context about the event.
+            incident_id (str, optional): Unique identifier for the incident lifecycle.
         """
         entry = {
             "timestamp": datetime.now().isoformat(),
@@ -31,20 +36,28 @@ class Analyst:
             json.dump(logs, f, indent=4)
 
     @staticmethod
-    def get_logs():
+    def get_logs() -> list:
+        """
+        Retrieves the full history of incident logs.
+        
+        Returns:
+            list: A list of log dictionaries.
+        """
         if not Config.LOG_FILE.exists():
             return []
         try:
             with open(Config.LOG_FILE, "r") as f:
                 return json.load(f)
-        except:
+        except (json.JSONDecodeError, IOError):
             return []
 
     @staticmethod
-    def calculate_last_rto():
+    def calculate_last_rto() -> tuple[float | None, str | None]:
         """
-        Calculates the RTO of the most recently completed recovery cycle.
-        Returns tuple: (seconds, incident_id)
+        Calculates the Recovery Time Objective (RTO) of the most recently completed recovery cycle.
+        
+        Returns:
+            tuple: (rto_in_seconds, incident_id) or (None, None) if no data.
         """
         logs = Analyst.get_logs()
         if not logs:
@@ -85,6 +98,26 @@ class Analyst:
             return (end - start).total_seconds(), incident_id
             
         return None, None
+
+    @staticmethod
+    def get_current_incident_id() -> str | None:
+        """
+        Retrieves the ID of the current active attack, if any.
+        
+        Returns:
+            str: The incident ID if an attack is active, else None.
+        """
+        logs = Analyst.get_logs()
+        if not logs:
+            return None
+        
+        # Look for the last 'Attack Start' that doesn't have a subsequent 'Restore Complete'
+        for log in reversed(logs):
+            if log["event"] == "Restore Complete":
+                return None # System is clean
+            if log["event"] == "Attack Start":
+                return log.get("incident_id")
+        return None   
 
     @staticmethod
     def get_rto_history():

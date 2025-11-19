@@ -13,9 +13,15 @@ class Hero:
     """
 
     @staticmethod
-    def restore_operations(progress_callback=None):
+    def restore_operations(progress_callback: callable = None) -> int:
         """
         Wipes the infected production folder and restores from backups.
+        
+        Args:
+            progress_callback (callable, optional): A function to report progress (0.0 to 1.0).
+            
+        Returns:
+            int: The number of files successfully restored.
         """
         SafetyEnforcer.ensure_directories()
         
@@ -79,7 +85,7 @@ class Hero:
         return restored_count
 
     @staticmethod
-    def generate_dummy_data():
+    def generate_dummy_data() -> None:
         """
         Generates dummy data in the backup folder and syncs to production
         to initialize the simulation.
